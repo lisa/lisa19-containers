@@ -1,0 +1,63 @@
+SHELL = bash -e
+REVISION ?= 1
+VERSION ?= $(shell date +%y.%m.$(REVISION))
+IMG := thedoh/lisa19
+REGISTRY ?= docker.io
+ARCHES ?= amd64 arm64
+TAG_LATEST ?= true
+
+default: all
+all: clean docker-build docker-multiarch docker-push
+
+include functions.mk
+
+# Step 1. Create per-arch images (by default, arm64 and amd64)
+.PHONY: docker-build
+	for build_arch in $(ARCHES); do \
+		docker build --platform=linux/$$build_arch --build-arg=GOARCH=$$build_arch -t $(REGISTRY)/$(IMG):$$build_arch-$(VERSION) . ;\
+		$(call set_image_arch,$(REGISTRY)/$(IMG):$$build_arch-$(VERSION),$$build_arch) ;\
+		if [[ $(TAG_LATEST) == "true" ]]; then \
+			docker tag $(REGISTRY)/$(IMG):$$build_arch-$(VERSION) $(REGISTRY)/$(IMG):$$build_arch-latest ;\
+		fi ;\
+	done
+
+# Step 2. Create the manifest list and add in each per-arch 
+# image to the list; push the per-arch images to Docker Hub.
+.PHONY: docker-multiarch
+docker-multiarch: docker-build
+	arches= ;\
+	for build_arch in $(ARCHES); do \
+		arches="$$build_arch $(REGISTRY)/$(IMG):$$build_arch-$(VERSION)" ;\
+		docker push $(REGISTRY)/$(IMG):$$build_arch-$(VERSION) ;\
+	done ;\
+	docker manifest create $(REGISTRY)/$(IMG):$(VERSION) $$build_arch ;\
+	if [[ $(TAG_LATEST) == "true" ]]; then \
+		docker manifest create $(REGISTRY)/$(IMG):latest $$build_arch  ;\
+	fi ;\
+	for build_arch in $(ARCHES); do \
+		docker manifest annotate $(REGISTRY)/$(IMG):$(VERSION) $(REGISTRY)/$(IMG):$$build_arch-$(VERSION) --os linux --arch $$build_arch ;\
+		if [[ $(TAG_LATEST) == "true" ]]; then \
+			docker manifest annotate $(REGISTRY)/$(IMG):latest $(REGISTRY)/$(IMG):$$build_arch-$(VERSION) --os linux --arch $$build_arch ;\
+		fi ;\
+	done
+
+# Step 3. Push the manifest list to Docker Hub.
+.PHONY: docker-push
+docker-push: docker-build docker-multiarch
+	docker manifest push $(REGISTRY)/$(IMG):$(VERSION) ;\
+	if [[ $(TAG_LATEST) == "true" ]]; then \
+		docker manifest push $(REGISTRY)/$(IMG):latest ;\
+	fi
+
+.PHONY: clean
+clean:
+	for build_arch in $(ARCHES); do \
+		docker rmi $(REGISTRY)/$(IMG):$$build_arch-$(VERSION) || true ;\
+		docker rmi $(REGISTRY)/$(IMG):$$build_arch-latest || true ;\
+	done ;\
+	docker rmi $(REGISTRY)/$(IMG):latest || true ;\
+	docker rmi $(REGISTRY)/$(IMG):$(VERSION) || true ;\
+	rm -vrf ~/.docker/manifests/$(shell echo $(REGISTRY)/$(IMG) | tr '/' '_' | tr ':' '-')-$(VERSION)  || true ;\
+	rm -vrf ~/.docker/manifests/$(shell echo $(REGISTRY)/$(IMG) | tr '/' '_' | tr ':' '-')-latest || true ;\
+
+

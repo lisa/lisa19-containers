@@ -3,11 +3,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0a5eda357e44d7738d48aaf461189779ed56e7b77ff980aefc757daea8a6836c"
+  digest = "1:a443cf7a0cdcb68e2ee030fe000374dad1eb77c5c5739a78a3ff915a802886ed"
   name = "github.com/google/go-containerregistry"
   packages = [
     "pkg/authn",
     "pkg/internal/retry",
+    "pkg/internal/retry/wait",
     "pkg/logs",
     "pkg/name",
     "pkg/v1",
@@ -19,7 +20,7 @@
     "pkg/v1/v1util",
   ]
   pruneopts = "UT"
-  revision = "5d07ccae338dd71d461b7514ce1cad26b0bc4300"
+  revision = "164ee21a6dd5df140d1825d0c489897927979e24"
 
 [[projects]]
   branch = "master"
@@ -27,26 +28,7 @@
   name = "golang.org/x/sync"
   packages = ["errgroup"]
   pruneopts = "UT"
-  revision = "112230192c580c3556b8cee6403af37a4fc5f28c"
-
-[[projects]]
-  branch = "master"
-  digest = "1:43a834b090dc82b60e73d8e98715bbe0bd45b342e7ca137b913b85c493988186"
-  name = "k8s.io/apimachinery"
-  packages = [
-    "pkg/util/runtime",
-    "pkg/util/wait",
-  ]
-  pruneopts = "UT"
-  revision = "423f5d7840102e5ffd2067db94a91de4472f2935"
-
-[[projects]]
-  digest = "1:fd24a140b16df03386fb0d9da8a5879e3b0178f35fff6545d3101f70ff9a4f1a"
-  name = "k8s.io/klog"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "89e63fd5117f8c20208186ef85f096703a280c20"
-  version = "v0.3.1"
+  revision = "cd5d95a43a6e21273425c7ae415d3df9ea832eeb"
 
 [solve-meta]
   analyzer-name = "dep"

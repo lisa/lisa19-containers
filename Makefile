@@ -8,8 +8,9 @@ ARCHES ?= arm64 amd64
 INSECURE ?=
 
 default: all
-all: validate-options clean docker-build docker-multiarch docker-push
+all: validate-options clean docker-build docker-multiarch docker-push $(PULL_BINARY)
 
+include app.mk
 include verbose.mk
 include functions.mk
 include validate.mk
@@ -48,7 +49,7 @@ docker-push: docker-build docker-multiarch
 	docker manifest push $(INSECURE) $(REGISTRY)/$(IMG):latest $(redirect)
 
 .PHONY: clean
-clean:
+clean: pull-app-clean clean-fetches
 	$(AT)for a in $(ARCHES); do \
 		echo "[clean] Local image delete for $(REGISTRY)/$(IMG):$$a-$(VERSION) and $(REGISTRY)/$(IMG):$$a-latest" ;\
 		docker rmi $(REGISTRY)/$(IMG):$$a-$(VERSION) &>/dev/null || true ;\
@@ -59,5 +60,4 @@ clean:
 	docker rmi $(REGISTRY)/$(IMG):$(VERSION) &>/dev/null || true ;\
 	rm -vrf ~/.docker/manifests/$(shell echo $(REGISTRY)/$(IMG) | tr '/' '_' | tr ':' '-')-$(VERSION) $(redirect) || true ;\
 	rm -vrf ~/.docker/manifests/$(shell echo $(REGISTRY)/$(IMG) | tr '/' '_' | tr ':' '-')-latest $(redirect) || true ;\
-	echo "[clean] Cleaning 'validate' artifacts" ;\
-	rm -vrf $(FETCH_ROOT) $(redirect) || true
+

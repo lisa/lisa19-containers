@@ -1,6 +1,7 @@
 FETCH_IMAGE_FILENAME ?= image.tar
 FETCH_ROOT ?= download
 FETCH_OPTS ?= -repo=docker.io -image=$(IMG) -tag=$(VERSION)
+FETCH_CMD ?= $(PULL_BINARY) $(FETCH_OPTS)
 
 .PHONY: validate-options
 validate-options:
@@ -9,25 +10,25 @@ validate-options:
 	fi
 
 .PHONY: fetch-arm64
-fetch-arm64:
-	$(AT)echo "[fetch-arm64] Fetching the linux/arm64 tarball for $(REGISTRY)/$(IMG):$(VERSION) to $(FETCH_ROOT)/amd64/$(FETCH_IMAGE_FILENAME)" ;\
+fetch-arm64: validate-options pull-binary
+	$(AT)echo "[fetch-arm64] Fetching the linux/arm64 tarball for $(REGISTRY)/$(IMG):$(VERSION) to $(FETCH_ROOT)/arm64/$(FETCH_IMAGE_FILENAME)" ;\
 	\rm -rf $(FETCH_ROOT)/arm64 || true ;\
 	mkdir -p $(FETCH_ROOT)/arm64 ;\
-	go run cmd/main.go $(FETCH_OPTS) -arch arm64 -os linux -saveTo $(FETCH_ROOT)/arm64/$(FETCH_IMAGE_FILENAME) 1>/dev/null
+	$(FETCH_CMD) -arch arm64 -os linux -saveTo $(FETCH_ROOT)/arm64/$(FETCH_IMAGE_FILENAME) $(redirect)
 
 .PHONY: fetch-amd64
-fetch-amd64:
+fetch-amd64: validate-options pull-binary
 	$(AT)echo "[fetch-amd64] Fetching the linux/amd64 tarball for $(REGISTRY)/$(IMG):$(VERSION) to $(FETCH_ROOT)/amd64/$(FETCH_IMAGE_FILENAME)" ;\
 	\rm -rf $(FETCH_ROOT)/amd64 || true ;\
 	mkdir -p $(FETCH_ROOT)/amd64 ;\
-	go run cmd/main.go $(FETCH_OPTS) -arch amd64 -os linux -saveTo $(FETCH_ROOT)/amd64/$(FETCH_IMAGE_FILENAME) 1>/dev/null
+	$(FETCH_CMD) -arch amd64 -os linux -saveTo $(FETCH_ROOT)/amd64/$(FETCH_IMAGE_FILENAME) $(redirect)
 
 .PHONY: fetch
-fetch:
+fetch: validate-options pull-binary
 	$(AT)echo "[fetch] Fetching mystery os/arch for $(REGISTRY)/$(IMG):$(VERSION) to $(FETCH_ROOT)/default/$(FETCH_IMAGE_FILENAME)" ;\
 	\rm -rf $(FETCH_ROOT)/default || true ;\
 	mkdir -p $(FETCH_ROOT)/default ;\
-	go run cmd/main.go $(FETCH_OPTS) -saveTo $(FETCH_ROOT)/default/$(FETCH_IMAGE_FILENAME) 1>/dev/null
+	$(FETCH_CMD) $(FETCH_OPTS) -saveTo $(FETCH_ROOT)/default/$(FETCH_IMAGE_FILENAME) $(redirect)
 
 .PHONY: validate-default
 validate-default: fetch
@@ -58,3 +59,10 @@ validate-amd64: fetch-amd64
 	detectedos="$$(cat sha256* | jq -r '.os')" ;\
 	echo "[validate-amd64] Detected $${detectedos}/$${detectedarch} from $(FETCH_ROOT)/amd64/$(FETCH_IMAGE_FILENAME)." ;\
 	cd ../..
+
+.PHONY: clean-fetches
+clean-fetches:
+	$(AT)echo "[clean-fetches] Cleaning saved downloaded tarballs" ;\
+	for a in $(ARCHES); do \
+		rm -rf $(FETCH_ROOT)/$$a || true;\
+	done

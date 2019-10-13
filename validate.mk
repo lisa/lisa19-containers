@@ -25,7 +25,7 @@ fetch-amd64: validate-options pull-binary
 
 .PHONY: fetch
 fetch: validate-options pull-binary
-	$(AT)echo "[fetch] Fetching mystery os/arch for $(REGISTRY)/$(IMG):$(VERSION) to $(FETCH_ROOT)/default/$(FETCH_IMAGE_FILENAME)" ;\
+	$(AT)echo "[fetch] Fetching $(REGISTRY)/$(IMG):$(VERSION) to $(FETCH_ROOT)/default/$(FETCH_IMAGE_FILENAME) without specifying a platform." ;\
 	\rm -rf $(FETCH_ROOT)/default || true ;\
 	mkdir -p $(FETCH_ROOT)/default ;\
 	$(FETCH_CMD) $(FETCH_OPTS) -saveTo $(FETCH_ROOT)/default/$(FETCH_IMAGE_FILENAME) $(redirect)
@@ -35,9 +35,11 @@ validate-default: fetch
 	$(AT)echo "[validate-default] Determining which os/arch was downloaded to $(FETCH_ROOT)/default/$(FETCH_IMAGE_FILENAME)" ;\
 	cd $(FETCH_ROOT)/default ;\
 	tar xf $(FETCH_IMAGE_FILENAME) ;\
+	find . -name "*.tar.gz" -exec tar xzf {} \; ;\
 	detectedarch="$$(cat sha256* | jq -r '.architecture')" ;\
 	detectedos="$$(cat sha256* | jq -r '.os')" ;\
-	echo "[validate-default] Detected $${detectedos}/$${detectedarch} from $(FETCH_ROOT)/default/$(FETCH_IMAGE_FILENAME)." ;\
+	echo "[validate-default] Detected $${detectedos}/$${detectedarch} from $(FETCH_ROOT)/default/$(FETCH_IMAGE_FILENAME) manifest." ;\
+	echo "[validate-default] Binary from compressed tarball: $$(file -e elf proof)" ;\
 	cd ../..
 
 .PHONY: validate-arm64
@@ -45,9 +47,11 @@ validate-arm64: fetch-arm64
 	$(AT)echo "[validate-arm64] Determining if linux/arm64 was downloaded to $(FETCH_ROOT)/arm64/$(FETCH_IMAGE_FILENAME)" ;\
 	cd $(FETCH_ROOT)/arm64 ;\
 	tar xf $(FETCH_IMAGE_FILENAME) ;\
+	find . -name "*.tar.gz" -exec tar xzf {} \; ;\
 	detectedarch="$$(cat sha256* | jq -r '.architecture')" ;\
 	detectedos="$$(cat sha256* | jq -r '.os')" ;\
-	echo "[validate-arm64] Detected $${detectedos}/$${detectedarch} from $(FETCH_ROOT)/arm64/$(FETCH_IMAGE_FILENAME)." ;\
+	echo "[validate-default] Detected $${detectedos}/$${detectedarch} from $(FETCH_ROOT)/default/$(FETCH_IMAGE_FILENAME) manifest." ;\
+	echo "[validate-default] Binary from compressed tarball: $$(file -e elf proof)" ;\
 	cd ../..
 
 .PHONY: validate-amd64
@@ -55,9 +59,11 @@ validate-amd64: fetch-amd64
 	$(AT)echo "[validate-amd64] Determining if linux/amd64 was downloaded to $(FETCH_ROOT)/amd64/$(FETCH_IMAGE_FILENAME)" ;\
 	cd $(FETCH_ROOT)/amd64 ;\
 	tar xf $(FETCH_IMAGE_FILENAME) ;\
+	find . -name "*.tar.gz" -exec tar xzf {} \; ;\
 	detectedarch="$$(cat sha256* | jq -r '.architecture')" ;\
 	detectedos="$$(cat sha256* | jq -r '.os')" ;\
-	echo "[validate-amd64] Detected $${detectedos}/$${detectedarch} from $(FETCH_ROOT)/amd64/$(FETCH_IMAGE_FILENAME)." ;\
+	echo "[validate-default] Detected $${detectedos}/$${detectedarch} from $(FETCH_ROOT)/default/$(FETCH_IMAGE_FILENAME) manifest." ;\
+	echo "[validate-default] Binary from compressed tarball: $$(file -e elf proof)" ;\
 	cd ../..
 
 .PHONY: clean-fetches
@@ -66,3 +72,4 @@ clean-fetches:
 	for a in $(ARCHES); do \
 		rm -rf $(FETCH_ROOT)/$$a || true;\
 	done
+

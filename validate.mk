@@ -69,7 +69,7 @@ validate-amd64: fetch-amd64
 .PHONY: clean-fetches
 clean-fetches:
 	$(AT)echo "[clean-fetches] Cleaning saved downloaded tarballs" ;\
-	for a in $(ARCHES); do \
+	for a in default $(ARCHES); do \
 		rm -rf $(FETCH_ROOT)/$$a || true;\
 	done
 

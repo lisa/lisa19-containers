@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/google/go-containerregistry/pkg/name"
-	"github.com/google/go-containerregistry/pkg/v1"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
 )
@@ -21,11 +21,11 @@ type Image struct {
 
 // Pull a repo/image:tag to destination
 func Pull(destination string, img *Image, platform *v1.Platform) {
+	fmt.Printf("Attempting to save %s/%s:%s ", img.Repo, img.Image, img.Tag)
 	if platform != nil {
-		fmt.Printf("Saving %s/%s:%s (%s/%s) to %s\n", img.Repo, img.Image, img.Tag, platform.OS, platform.Architecture, destination)
-	} else {
-		fmt.Printf("Saving %s/%s:%s to %s\n", img.Repo, img.Image, img.Tag, destination)
+		fmt.Printf("(%s/%s) ", platform.OS, platform.Architecture)
 	}
+	fmt.Printf("to %s\n", destination)
 
 	ref, err := name.ParseReference(fmt.Sprintf("%s/%s:%s", img.Repo, img.Image, img.Tag), name.WeakValidation)
 	if err != nil {
@@ -48,19 +48,12 @@ func Pull(destination string, img *Image, platform *v1.Platform) {
 		fmt.Printf("Couldn't fetch the image %s/%s:%s, err=%s\n", img.Repo, img.Image, img.Tag, err)
 	}
 
-	a, err := remoteImage.Manifest()
+	_, err = remoteImage.Manifest()
 	if err != nil {
 		fmt.Printf("Couldn't find a manifest: %s\n", err)
-	} else {
-		fmt.Printf("manifest.config.platform = %+v\n", a.Config.Platform)
-		fmt.Printf("manifest layers= %+v\n", a.Layers)
 	}
 
-	if err != nil {
-		fmt.Printf("Error fetching remote image details: %s\n", err)
-		os.Exit(1)
-	}
-	fmt.Printf("Remote Image: %+v\n", remoteImage)
+	fmt.Printf("Remote Image: %#v\n", remoteImage)
 
 	dstref, err := name.NewTag("temporary/tag", name.WeakValidation)
 	if err != nil {

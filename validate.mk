@@ -1,6 +1,6 @@
 FETCH_IMAGE_FILENAME ?= image.tar
 FETCH_ROOT ?= download
-FETCH_OPTS ?= -repo=docker.io -image=$(IMG) -tag=$(VERSION)
+FETCH_OPTS ?= -repo=$(REGISTRY) -image=$(IMG) -tag=$(VERSION)
 FETCH_CMD ?= $(PULL_BINARY) $(FETCH_OPTS)
 
 .PHONY: validate-options

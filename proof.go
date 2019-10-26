@@ -12,10 +12,10 @@ func main() {
 
 	p, err := ioutil.ReadFile(proofFile)
 	if err != nil {
-		fmt.Printf("Couldn't find proof file at %s\n", proofFile)
+		fmt.Printf("Couldn't find proof file at %s. ", proofFile)
 	} else {
-		fmt.Printf("Proof file says arch should be: %s\n", p)
+		fmt.Printf("At build time, this image was built to run on %s. ", p)
 	}
 
-	fmt.Printf("Running on %s/%s\n", runtime.GOARCH, runtime.GOOS)
+	fmt.Printf("The platform that is being run on is %s/%s\n", runtime.GOOS, runtime.GOARCH)
 }

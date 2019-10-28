@@ -11,7 +11,7 @@ all: clean docker-build docker-multiarch docker-push
 
 include functions.mk
 
-# Step 1. Create per-arch schema 1 images (by default, arm64 and amd64)
+# Step 1. Create per-arch images (by default, arm64 and amd64)
 .PHONY: docker-build
 	for build_arch in $(ARCHES); do \
 		docker build --platform=linux/$$build_arch --build-arg=GOARCH=$$build_arch -t $(REGISTRY)/$(IMG):$$build_arch-$(VERSION) . ;\
@@ -21,7 +21,7 @@ include functions.mk
 		fi ;\
 	done
 
-# Step 2. Create the (schema 2) manifest list and add in each per-arch (schema 1)
+# Step 2. Create the manifest list and add in each per-arch 
 # image to the list; push the per-arch images to Docker Hub.
 .PHONY: docker-multiarch
 docker-multiarch: docker-build
@@ -41,7 +41,7 @@ docker-multiarch: docker-build
 		fi ;\
 	done
 
-# Step 3. Push the (schema 2) image to Docker Hub.
+# Step 3. Push the manifest list to Docker Hub.
 .PHONY: docker-push
 docker-push: docker-build docker-multiarch
 	docker manifest push $(REGISTRY)/$(IMG):$(VERSION) ;\

@@ -104,7 +104,7 @@ step2() {
 step3() {
   local registry="${1}" img="${2}" version="${3}"
   docmd docker push ${registry}/${img}:amd64-${version}
-  pause "push ARM64 schema 1 image to ${registry}"
+  pause "push ARM64 image to ${registry}"
   docmd docker push ${registry}/${img}:arm64-${version}
 }
 
@@ -112,7 +112,7 @@ step4() {
   local registry="${1}" img="${2}" version="${3}"
   docmd docker manifest create ${registry}/${img}:${version} ${registry}/${img}:arm64-${version} ${registry}/${img}:amd64-${version}
   
-  pause "add a reference to the amd64 schema 1 image to the manifest list"
+  pause "add a reference to the amd64 image to the manifest list"
   docmd docker manifest annotate ${registry}/${img}:${version} ${registry}/${img}:amd64-${version} --os linux --arch amd64
   pause "now add arm64"
   docmd docker manifest annotate ${registry}/${img}:${version} ${registry}/${img}:arm64-${version} --os linux --arch arm64
@@ -145,22 +145,22 @@ step6() {
 
 pause "initial setup"
 step0 ${REGISTRY} ${IMG} ${VERSION}
-pause "1 build schema 1 images"
+pause "1 build constituent images"
 step1 ${REGISTRY} ${IMG} ${VERSION}
 
 pause "2 fix ARM64 metadata"
 step2 ${REGISTRY} ${IMG} ${VERSION}
 
-pause "3 push schema 1 images up to docker.io"
+pause "3 push constituent images up to docker.io"
 step3 ${REGISTRY} ${IMG} ${VERSION}
 
-pause "4 build the manifest list for the schema 2 image"
+pause "4 build the manifest list for the image"
 step4 ${REGISTRY} ${IMG} ${VERSION}
 
-pause "5 Push the schema 2 image to docker.io"
+pause "5 Push the manifest list to docker.io"
 step5 ${REGISTRY} ${IMG} ${VERSION}
 
-pause "6 clean slate, and validate the schema 2 image"
+pause "6 clean slate, and validate the list-based image"
 step6 ${REGISTRY} ${IMG} ${VERSION}
 
 docmd echo "All done"

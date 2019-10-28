@@ -13,7 +13,7 @@ help:
 	@echo " * Tagging $(REGISTRY)/$(IMG):$(VERSION)"
 
 
-# Set image Architecture in manifest and replace it in the local registry
+# Set image .config.Architecture in manifest and replace it in the local registry
 # 1 image:tag
 # 2 Set Architecture to
 define set_image_arch

@@ -60,8 +60,8 @@ step2() {
   # Set our way back home and get ready to fix our arm64 image to amd64.
   echocmd 'origpwd=$(pwd)'
   echocmd 'savedir=$(mktemp -d)'
-  docmd 700 $savedir &>/dev/null
-  docmd mkdir -p $savedir/change &>/dev/null
+  echocmd "mkdir -p \$savedir/change"
+  mkdir -p $savedir/change &>/dev/null
   echocmd "docker save ${REGISTRY}/${IMG}:arm64-${VERSION} 2>/dev/null 1> \$savedir/image.tar"
   docker save ${REGISTRY}/${IMG}:arm64-${VERSION} 2>/dev/null 1> $savedir/image.tar
   pause "untar the image to access its metadata"
@@ -73,8 +73,8 @@ step2() {
   docmd ls -l
   
   pause "find the JSON config file"
-  echocmd 'jsonfile=$(find $savedir/change -name "*.json" -not -name manifest.json)'
-  jsonfile=$(find $savedir/change -name "*.json" -not -name manifest.json)
+  echocmd 'jsonfile=$(jq -r ".[0].Config" manifest.json)'
+  jsonfile=$(jq -r ".[0].Config" manifest.json)
   
   pause "notice the original metadata says amd64"
   echocmd jq '{architecture: .architecture, ID: .config.Image}' \$jsonfile
@@ -98,7 +98,8 @@ step2() {
   tar cf - * | docker load
 
   docmd cd $origpwd
-  docmd /bin/rm -rf -- $savedir
+  echocmd "/bin/rm -rf -- \$savedir"
+  /bin/rm -rf -- $savedir &>/dev/null
 }
 
 step3() {
@@ -137,7 +138,9 @@ step6() {
   
   pause "now repeat for linux/arm64 and see what it gives us"
   docmd docker pull --platform linux/arm64 ${registry}/${img}:${version}
+  set +e
   docmd docker run --rm -i ${registry}/${img}:${version}
+  set -e
   if [[ $(uname -s) == "Darwin" ]]; then
     pause "note about Docker on Mac and binfmt_misc: binfmt_misc lets a mac run arm64 binaries in the Docker VM"
   fi
@@ -163,5 +166,5 @@ step5 ${REGISTRY} ${IMG} ${VERSION}
 pause "6 clean slate, and validate the list-based image"
 step6 ${REGISTRY} ${IMG} ${VERSION}
 
-docmd echo "All done"
+docmd echo 'Manual steps all done!'
 make REGISTRY=${REGISTRY} IMG=${IMG} VERSION=${VERSION} clean &>/dev/null

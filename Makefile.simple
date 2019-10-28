@@ -3,7 +3,7 @@ REVISION ?= 1
 VERSION ?= $(shell date +%y.%m.$(REVISION))
 IMG := thedoh/lisa19
 REGISTRY ?= docker.io
-ARCHES ?= arm64 amd64
+ARCHES ?= amd64 arm64
 TAG_LATEST ?= true
 
 default: all

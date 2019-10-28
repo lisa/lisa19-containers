@@ -9,10 +9,11 @@ WORKDIR /go/src/github.com/lisa/lisa19-containers
 
 COPY proof.go .
 
-# Should be able to run ./proof and ./proof-$arch
+# Should be able to run ./proof to get the arch we should be running as,
+# decided at build time here.
 RUN \
   CGO_ENABLED=0 GOARCH=${GOARCH} go build -ldflags '-extldflags "-static"' -a proof.go && \
-  echo "${GOARCH}" >> proof.txt
+  echo -n "$(go env GOOS)/$(go env GOARCH)" > proof.txt
 
 ######
 FROM scratch

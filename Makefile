@@ -3,7 +3,7 @@ REVISION ?= 1
 VERSION ?= $(shell date +%y.%m.$(REVISION))
 IMG := thedoh/lisa19
 REGISTRY ?= docker.io
-ARCHES ?= arm64 amd64
+ARCHES ?= amd64 arm64
 TAG_LATEST ?= true
 
 INSECURE ?=
@@ -63,12 +63,12 @@ docker-push: docker-build docker-multiarch
 clean: pull-app-clean clean-fetches
 	$(AT)for a in $(ARCHES); do \
 		echo "[clean] Local image delete for $(REGISTRY)/$(IMG):$$a-$(VERSION) and $(REGISTRY)/$(IMG):$$a-latest" ;\
-		docker rmi $(REGISTRY)/$(IMG):$$a-$(VERSION) &>/dev/null || true ;\
-		docker rmi $(REGISTRY)/$(IMG):$$a-latest &>/dev/null || true ;\
+		docker rmi --force $(REGISTRY)/$(IMG):$$a-$(VERSION) &>/dev/null || true ;\
+		docker rmi --force $(REGISTRY)/$(IMG):$$a-latest &>/dev/null || true ;\
 	done ;\
 	echo "[clean] Cleaning multiarch $(REGISTRY)/$(IMG):latest and $(REGISTRY)/$(IMG):$(VERSION)" ;\
-	docker rmi $(REGISTRY)/$(IMG):latest &>/dev/null || true ;\
-	docker rmi $(REGISTRY)/$(IMG):$(VERSION) &>/dev/null || true ;\
+	docker rmi --force $(REGISTRY)/$(IMG):latest &>/dev/null || true ;\
+	docker rmi --force $(REGISTRY)/$(IMG):$(VERSION) &>/dev/null || true ;\
 	rm -vrf ~/.docker/manifests/$(shell echo $(REGISTRY)/$(IMG) | tr '/' '_' | tr ':' '-')-$(VERSION) $(redirect) || true ;\
 	rm -vrf ~/.docker/manifests/$(shell echo $(REGISTRY)/$(IMG) | tr '/' '_' | tr ':' '-')-latest $(redirect) || true ;\
 
